@@ -7,6 +7,8 @@ Created on Monday the 25th of March
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import MultipleLocator
+import matplotlib as mpl
 from sklearn.cluster import DBSCAN
 import warnings
 
@@ -23,6 +25,8 @@ class LocalisationData:
         self.xydata = []
 
         self.dbscan_data = []
+
+        self.labels = []
 
         self.all_beads_drift_xaxis = []
 
@@ -119,13 +123,15 @@ class LocalisationData:
             xy_localisations
         )
 
-        labels = dbscan.labels
+        labels = dbscan.labels_
+
+        self.labels = labels
 
         # Set points labelled as noise to -1 instead of 0
 
         labels[(labels == 0)] = -1
 
-        labelled_data = np.concatenate((xy_localisations, labels), axis=1)
+        labelled_data = np.concatenate((xy_localisations, labels[:, np.newaxis]), axis=1)
 
         self.dbscan_data = labelled_data
 
@@ -163,15 +169,15 @@ class LocalisationData:
 
             # Append to attributes
 
-            self.all_beads_drift_xaxis.append(x_drift[1:])
+            self.all_beads_drift_xaxis.append(x_drift)
 
-            self.all_beads_drift_yaxis.append(y_drift[1:])
+            self.all_beads_drift_yaxis.append(y_drift)
 
             self.all_beads_xdrift_std.append(x_std)
 
             self.all_beads_ydrift_std.append(y_std)
 
-        # Check number of std devs matches number of labels
+        # Check number of std devs matches number of labels FIX ERROR HERE
         
         if self.all_beads_ydrift_std.shape[0] != bead_labels.shape[0]:
             
@@ -183,9 +189,9 @@ class LocalisationData:
             raise IndexError('Number of standard deviations should match number of labels.'
                              'Check your x-values again.')
         
-        self.mean_std_xaxis = np.mean(self.all_beads_xdrift_std)
+        self.mean_std_xaxis = np.mean(np.vstack(self.all_beads_xdrift_std))
         
-        self.mean_std_yaxis = np.mean(self.all_beads_ydrift_std)
+        self.mean_std_yaxis = np.mean(np.vstack(self.all_beads_ydrift_std))
 
     def save_data(self, outpath):
 
@@ -199,7 +205,7 @@ class LocalisationData:
                           'Mean drift in x = ' + str(self.mean_std_xaxis) + 'nm \n'
                           'Mean drift in y = ' + str(self.mean_std_yaxis) + 'nm \n')
 
-    def plot_bead_trajectory(self):
+    def plot_bead_trajectory(self, outpath):
 
         # Extract x and y coordinates
 
@@ -215,15 +221,113 @@ class LocalisationData:
 
         for bead in x:
 
-            ids = np.arange(1, len(bead))
+            ids = np.arange(1, len(bead) + 1)
 
             frame_ids.append(ids)
 
         # Compile all x, y, and frame id values
 
-        x_vals, y_vals, frames = np.vstack(x), np.vstack(y), np.vstack(frame_ids)
+        x_vals, y_vals, frames = np.vstack(x), np.vstack(y), np.vstack(frame_ids) / 2
 
-        # Plot scatterplot ADD COLOR BAR
+        # Check all arrays are the same size
+
+        if x_vals.shape[0] == y_vals.shape[0] == frames.shape[0]:
+
+            pass
+
+        else:
+
+            raise ValueError('Sizes of x-values/y-values/frames are not equal')
+
+        # Plot scatterplot
+
+        mpl.rcParams['font.family'] = 'sans-serif'
+        mpl.rcParams['font.size'] = 13
 
         plt.figure(figsize=(10, 10), dpi=500)
-        plt.scatter(x_vals, y_vals, c=frames, cmap=plt.cm.RdYlBu, marker='+',s=30, alpha=0.8)
+        plt.scatter(x_vals, y_vals, c=frames, cmap=plt.cm.RdYlBu, marker='o',s=30, alpha=0.8)
+        plt.box(True)
+        
+        # Add color bar
+        
+        colorbar = plt.colorbar()
+        colorbar.set_ticks(np.arange(np.min(frames), np.max(frames), 20))
+        colorbar.update_ticks()
+
+        colorbar.ax.tick_params(width=1, length=3, labelsize=14)
+        colorbar.set_label('Time (mins)', fontsize = 16)
+        
+        # Set plot parameters
+        
+        ax = plt.gca()
+        ax.set_aspect('equal', adjustable='box')
+        ax.tick_params(axis='y', which='major', length=6)
+        ax.tick_params(axis='x', which='major', length=6)
+        ax.xaxis.set_major_locator(MultipleLocator(10))
+        ax.yaxis.set_major_locator(MultipleLocator(10))
+        ax.xaxis.label.set_color('black')
+        ax.yaxis.label.set_color('black')
+        
+        ax.spines['bottom'].set_color('black')
+        ax.spines['top'].set_color('black')
+        ax.spines['right'].set_color('black')
+        ax.spines['left'].set_color('black')
+        ax.spines['bottom'].set_linewidth(2.0)
+        ax.spines['top'].set_linewidth(2.0)
+        ax.spines['right'].set_linewidth(2.0)
+        ax.spines['left'].set_linewidth(2.0)
+        
+        ax.set_xlim([-100, 100])
+        ax.set_ylim([-100, 100])
+        ax.set_xlabel('x (nm)', labelpad=12, fontsize=24)
+        ax.set_ylabel('y (nm)', labelpad=12, fontsize=24)
+
+        plt.savefig(outpath + '/drift_trajectory.tif')
+        plt.savefig(outpath + '/drift_trajectory.png')
+
+
+## Initialize and import data
+
+print('Loading stuff...')
+
+bead1 = LocalisationData('run1')
+
+data = 'C:/Users/mxq76232/PycharmProjects/SMLM_drift_analysis/.venv/SMLM_drift_analysis/example_data/bead_locs_3.csv'
+
+out = 'C:/Users/mxq76232/Desktop'
+
+eps = 100
+
+clusters = 200
+
+print('Loaded!')
+
+## Load localisations
+
+print('Loading data, please wait')
+
+bead1.load_localisations(data)
+
+print('Data loaded!')
+
+## DBSCAN
+
+print('Carrying out DBSCAN, please wait.')
+
+bead1.dbscan_beads(eps, clusters)
+
+print('Done')
+
+## Measure drift and save data
+
+print('Performing drift analysis')
+
+bead1.measure_drift(bead1.dbscan_data)
+
+bead1.save_data(out)
+
+print('Data saved!')
+
+## Plot
+
+bead1.plot_bead_trajectory
