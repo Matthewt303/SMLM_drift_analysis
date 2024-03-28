@@ -4,13 +4,15 @@ import drift_analysis_script
 
 ## Initialize and import data
 
-print('Loading stuff...')
+print('Loading data...')
 
-bead1 = drift_analysis_script.LocalisationData('run1')
+project_name = input('Please enter project name: ')
 
-data = input('Enter path to data: ')
+bead1 = drift_analysis_script.LocalisationData(project_name)
 
-out = input('Enter where you want data to be saved: ')
+data = input('Please enter path to localisation data: ')
+
+out = input('Please enter output path: ')
 
 eps = 100
 
@@ -46,4 +48,6 @@ print('Data saved!')
 
 ## Plot
 
-bead1.plot_bead_trajectory
+bead1.plot_bead_trajectory(out)
+
+print('Script complete!')
