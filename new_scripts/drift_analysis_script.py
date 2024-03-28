@@ -219,9 +219,9 @@ class LocalisationData:
         the standard deviation for each bead and then calculates the mean
         for all standard deviations.
 
-        :param clustered_bead_data:
+        :param clustered_bead_data: localisation data with a label assigned to each localisation
         :type clustered_bead_data: numpy array
-        :return:
+
         """
 
         # Check input data shape
@@ -290,6 +290,15 @@ class LocalisationData:
 
     def save_data(self, outpath):
 
+        """
+        This method saves the output from DBSCAN and the mean drift along
+        the x- and y-axes as a .txt file.
+
+        :param outpath: output path where data will be saved
+        :type outpath: string
+        :return:
+        """
+
         if not isinstance(outpath, str):
 
             raise TypeError('Output path is not a string.')
@@ -302,6 +311,18 @@ class LocalisationData:
                    )
 
     def plot_bead_trajectory(self, outpath):
+
+        """
+        This method plots a scatterplot and saves it to local storage, as specified
+        by the outpath as a .png and a .tif. The scatterplot consists of the drift
+        values along x and y for all beads, as calculated by measure_drift. The colors
+        represent the experimental timecourse, with red indicating the start and blue
+        indicating the end.
+
+
+        :param outpath: output path where data will be saved
+        :type outpath: string
+        """
 
         # Extract x and y coordinates
 
