@@ -16,6 +16,62 @@ import warnings
 
 class LocalisationData:
 
+    """
+    A class to represent the localisation data arising from an SMLM image acquisition.
+
+    Attributes
+    ----------
+    name: str
+        a user-specified name for the dataset.
+        Recommended to be the same name as TifStack
+    localisation data: numpy array
+        The localisation table arising from sub-pixel localisation
+        of an image acquisition series.
+    xydata: numpy array
+        The xy localisations from the localisation table.
+    dbscan_data: numpy array
+        The xy localisations and the label assigned to each localisation from
+        DBSCAN.
+    all_beads_drift_xaxis: list
+        List of arrays where each array corresponds to the x-drift of a bead
+    all_beads_drift_yaxis: list
+        Same as above but for y-drift
+    all_beads_drift_xdrift_std: list
+        List of standard deviations of the x-drift for each bead
+    all_beads_drift_ydrift_std: list
+        Same as above but for standard deviations of the y-drift
+    mean_std_xaxis: float
+        Mean of the x-drift standard deviations of all beads
+    mean_std_yaxis: float
+        Same as above but for y-axis
+
+    Methods
+    ------
+    load_localisations(input_path):
+        Loads localisation table given the input path
+
+    dbscan_beads(epsilon, cluster_size):
+        Hierarchical clustering of beads using DBSCAN, requires
+        a minimum cluster radius (epsilon) and minimum cluster size (cluster_size)
+
+    measure_drift(clustered_bead_data):
+        From the clustered bead data, all localisations for a particular label
+        are extracted. The coordinates of the first localisation are then subtracted
+        and the resulting array is stored in a list.
+
+        The standard deviations along x and y are also calculated from the resulting array
+        and stored in a list. This process is repeated for all labels. Once it is complete,
+        the mean of standard deviations along x and y are computed and stored.
+
+    plot_bead_trajectories(outpath):
+        Loops through each array (bead localisation data) stored in self.all_beads_drift_xaxis
+        and generates a unique value for each localisation. Repeats for each bead. The unique
+        values are converted to the experimental timecourse with units of minutes.
+
+        A scatterplot is then drawn for all bead localisations. The color scheme is such that
+        red represents the beginning of the experiment while blue represents the end.
+    """
+
     def __init__(self, name):
 
         self.name = name
@@ -25,8 +81,6 @@ class LocalisationData:
         self.xydata = []
 
         self.dbscan_data = []
-
-        self.labels = []
 
         self.all_beads_drift_xaxis = []
 
@@ -41,6 +95,15 @@ class LocalisationData:
         self.mean_std_yaxis = float()
 
     def load_localisations(self, input_path):
+
+        """
+        This method loads localisation data given the input path.
+
+        :param input_path: file path to localisation data
+        :type input_path: string
+
+        :return self.xydata: xy localisations of beads
+        """
 
         # Check if input is string and if file is csv
 
@@ -79,6 +142,18 @@ class LocalisationData:
         return self.xydata
 
     def dbscan_beads(self, epsilon, cluster_size):
+
+        """
+        Carries out DBSCAN (doi: 10.5555/3001460.3001507) of bead localisations
+        given epsilon and a cluster size.
+
+        :param epsilon: minimum cluster radius in nanometers
+        :type epsilon: float or integer
+        :param cluster_size: minimum number of points that constitute a cluster
+        :type cluster_size: integer
+
+        :return self.dbscan_data: xy localisations with labels from DBSCAN
+        """
 
         # Check if inputs are valid. Epsilon must be float > 0. Cluster size must be int > 0
 
@@ -138,6 +213,16 @@ class LocalisationData:
         return self.dbscan_data
 
     def measure_drift(self, clustered_bead_data):
+
+        """
+        This method measures the drift along x and y for each bead, calculates
+        the standard deviation for each bead and then calculates the mean
+        for all standard deviations.
+
+        :param clustered_bead_data:
+        :type clustered_bead_data: numpy array
+        :return:
+        """
 
         # Check input data shape
         
