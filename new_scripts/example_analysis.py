@@ -8,7 +8,8 @@ print('Loading data...')
 
 project_name = input('Please enter project name: ')
 
-bead1 = drift_analysis_script.LocalisationData(project_name)
+# Initialize bead data
+bead1 = drift_analysis_script.BeadData(project_name)
 
 data = input('Please enter path to localisation data: ')
 

@@ -14,7 +14,7 @@ import warnings
 
 ## Classes
 
-class LocalisationData:
+class BeadData:
 
     """
     A class to represent the localisation data arising from an SMLM image acquisition.
@@ -401,3 +401,91 @@ class LocalisationData:
 
         plt.savefig(outpath + '/drift_trajectory.tif')
         plt.savefig(outpath + '/drift_trajectory.png')
+
+class SingleMoleculeData(BeadData):
+
+    def __init__(self, name):
+
+        super().__init__(self, name)
+
+        self.name = name
+
+        self.xdrift_std = float()
+
+        self.ydrift_std = float()
+
+    def load_localisations(self, input_path):
+
+        super().load_localisations(self, input_path)
+
+    def calculate_drift(self):
+
+        if self.xydata.shape[1] != 2:
+
+            raise ValueError('xydata should have two columns.')
+
+        x_coords = self.xydata[:, 0].copy()
+
+        y_coords = self.xydata[:, 1].copy()
+
+        x_drift = x_coords - x_coords[0]
+
+        y_drift = y_coords - y_coords[0]
+
+        self.xdrift_std = np.std(x_drift[1:])
+
+        self.ydrift_std = np.std(y_drift[1:])
+
+    def plot_sm_drift(self, outpath):
+
+        x = self.xydata[:, 0].copy()
+
+        y = self.xydata[:, 1].copy()
+
+        frames = np.arange(1, x.shape[0] + 1).reshape(x.shape[0], 1)
+
+        frames = (frames - 1) / 2
+
+        mpl.rcParams['font.family'] = 'sans-serif'
+        mpl.rcParams['font.size'] = 13
+
+        plt.figure(figsize=(10, 10), dpi=500)
+        plt.scatter(x, y, c=frames, cmap=plt.cm.RdYlBu, marker='o', s=5, alpha=0.8)
+        plt.box(True)
+
+        # Add color bar
+
+        colorbar = plt.colorbar()
+        colorbar.set_ticks(np.arange(np.min(frames), np.max(frames), 20))
+        colorbar.update_ticks()
+
+        colorbar.ax.tick_params(width=1, length=3, labelsize=14)
+        colorbar.set_label('Time (mins)', fontsize=16)
+
+        # Set plot parameters
+
+        ax = plt.gca()
+        ax.set_aspect('equal', adjustable='box')
+        ax.tick_params(axis='y', which='major', length=6)
+        ax.tick_params(axis='x', which='major', length=6)
+        ax.xaxis.set_major_locator(MultipleLocator(10))
+        ax.yaxis.set_major_locator(MultipleLocator(10))
+        ax.xaxis.label.set_color('black')
+        ax.yaxis.label.set_color('black')
+
+        ax.spines['bottom'].set_color('black')
+        ax.spines['top'].set_color('black')
+        ax.spines['right'].set_color('black')
+        ax.spines['left'].set_color('black')
+        ax.spines['bottom'].set_linewidth(2.0)
+        ax.spines['top'].set_linewidth(2.0)
+        ax.spines['right'].set_linewidth(2.0)
+        ax.spines['left'].set_linewidth(2.0)
+
+        ax.set_xlim([np.min(x_vals) - 5, np.max(x_vals) + 5])
+        ax.set_ylim([np.min(y_vals) - 5, np.max(y_vals) + 5])
+        ax.set_xlabel('x (nm)', labelpad=12, fontsize=24)
+        ax.set_ylabel('y (nm)', labelpad=12, fontsize=24)
+
+        plt.savefig(outpath + '/singlemolecule_drift_trajectory.tif')
+        plt.savefig(outpath + '/singlemolecule_drift_trajectory.png')
