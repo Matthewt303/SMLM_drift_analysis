@@ -1,5 +1,9 @@
 ## Import
 
+""" Module providing drift analysis classes
+and methods
+"""
+
 import drift_analysis_script
 
 ## Initialize and import data
@@ -15,9 +19,9 @@ data = input('Please enter path to localisation data: ')
 
 out = input('Please enter output path: ')
 
-eps = 100
+EPS = 100
 
-clusters = 200
+CLUSTERS = 200
 
 print('Loaded!')
 
@@ -33,7 +37,7 @@ print('Data loaded!')
 
 print('Carrying out DBSCAN, please wait.')
 
-bead1.dbscan_beads(eps, clusters)
+bead1.dbscan_beads(EPS, CLUSTERS)
 
 print('Done')
 

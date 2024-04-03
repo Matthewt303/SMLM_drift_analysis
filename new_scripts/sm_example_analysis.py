@@ -1,5 +1,9 @@
 ## Import
 
+""" Module providing drift analysis classes
+and methods
+"""
+
 import drift_analysis_script
 
 ## Initialize and import data
