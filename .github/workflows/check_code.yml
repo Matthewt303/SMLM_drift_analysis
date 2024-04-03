@@ -38,7 +38,4 @@ jobs:
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        pytest
-    - name: Test with pytest
-      run: |
         flake8
