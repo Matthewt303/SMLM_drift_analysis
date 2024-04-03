@@ -5,19 +5,20 @@ Created on Monday the 25th of March
 """
 ## Import modules
 
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import MultipleLocator
 import matplotlib as mpl
 from sklearn.cluster import DBSCAN
-import warnings
 
 ## Classes
+
 
 class BeadData:
 
     """
-    A class to represent the localisation data arising from an SMLM image acquisition.
+    Represents the localisation data from SMLM image acquisition.
 
     Attributes
     ----------
@@ -52,31 +53,33 @@ class BeadData:
 
     dbscan_beads(epsilon, cluster_size):
         Hierarchical clustering of beads using DBSCAN, requires
-        a minimum cluster radius (epsilon) and minimum cluster size (cluster_size)
+        a minimum cluster radius (epsilon) and
+        minimum cluster size (cluster_size)
 
     measure_drift(clustered_bead_data):
-        From the clustered bead data, all localisations for a particular label
-        are extracted. The coordinates of the first localisation are then subtracted
-        and the resulting array is stored in a list.
+        From the clustered bead data, all localisations for a label
+        are extracted. The coordinates of the first localisation are
+        then subtracted and the resulting array is stored in a list.
 
-        The standard deviations along x and y are also calculated from the resulting array
-        and stored in a list. This process is repeated for all labels. Once it is complete,
-        the mean of standard deviations along x and y are computed and stored.
+        The standard deviations along x and y are also calculated
+        from the resulting array and stored in a list. This process is
+        repeated for all labels. Once it is complete, the mean of
+        standard deviations along x and y are computed and stored.
 
     plot_bead_trajectories(outpath):
-        Loops through each array (bead localisation data) stored in self.all_beads_drift_xaxis
-        and generates a unique value for each localisation. Repeats for each bead. The unique
-        values are converted to the experimental timecourse with units of minutes.
+        Loops through each array (bead localisation data) stored in
+        self.all_beads_drift_xaxis and generates a unique value for
+        each localisation. Repeats for each bead. The unique values
+        are converted to the experimental time with units = minutes.
 
-        A scatterplot is then drawn for all bead localisations. The color scheme is such that
-        red represents the beginning of the experiment while blue represents the end.
+        A scatterplot is then drawn for all bead localisations.
+        The color scheme is such that red represents the beginning
+        of the experiment while blue represents the end.
     """
 
     def __init__(self, name):
 
         self.name = name
-
-        self.localisation_data = []
 
         self.xydata = []
 
@@ -89,10 +92,6 @@ class BeadData:
         self.all_beads_xdrift_std = []
 
         self.all_beads_ydrift_std = []
-
-        self.mean_std_xaxis = float()
-
-        self.mean_std_yaxis = float()
 
     def load_localisations(self, input_path):
 
@@ -119,12 +118,10 @@ class BeadData:
 
             raise NameError('Input file must be a .csv file')
 
-        loc_data = np.genfromtxt(input_path,
-                                          dtype = float,
-                                          skip_header=1,
-                                          delimiter = ',')
+        loc_data = np.genfromtxt(input_path, dtype=float,
+                                 skip_header=1, delimiter=',')
 
-        # Check shape of localisation table, should have 9 or 10 columns if ThunderSTORM was used
+        # Check shape of loc table, should have 9 or 10 columns
 
         if loc_data.shape[1] == 9 or loc_data.shape[1] == 10:
 
@@ -133,9 +130,6 @@ class BeadData:
         else:
 
             raise IndexError('The localisation data has too many/few columns')
-            print('Please make sure you are using the localisation data from ThunderSTORM')
-
-        self.localisation_data = loc_data
 
         self.xydata = loc_data[:, 2:4]
 
@@ -155,7 +149,7 @@ class BeadData:
         :return self.dbscan_data: xy localisations with labels from DBSCAN
         """
 
-        # Check if inputs are valid. Epsilon must be float > 0. Cluster size must be int > 0
+        # Check if inputs are valid
 
         if not isinstance(epsilon, (float, int)):
 
@@ -200,13 +194,12 @@ class BeadData:
 
         labels = dbscan.labels_
 
-        self.labels = labels
-
         # Set points labelled as noise to -1 instead of 0
 
         labels[(labels == 0)] = -1
 
-        labelled_data = np.concatenate((xy_localisations, labels[:, np.newaxis]), axis=1)
+        labelled_data = np.concatenate((xy_localisations,
+                                        labels[:, np.newaxis]), axis=1)
 
         self.dbscan_data = labelled_data
 
@@ -219,17 +212,17 @@ class BeadData:
         the standard deviation for each bead and then calculates the mean
         for all standard deviations.
 
-        :param clustered_bead_data: localisation data with a label assigned to each localisation
+        :param clustered_bead_data: localisation data with a label
+            assigned to each localisation
         :type clustered_bead_data: numpy array
 
         """
-
         # Check input data shape
-        
+
         if clustered_bead_data.shape[1] != 3:
-            
+
             raise IndexError('Clustered bead data must have three columns.')
-        
+
         # Separate beads
 
         bead_labels = np.unique(clustered_bead_data[:, 2])
@@ -246,7 +239,9 @@ class BeadData:
 
             else:
 
-                bead_coords = clustered_bead_data[(clustered_bead_data[:, 2] == label)]
+                bead_coords = clustered_bead_data[
+                    (clustered_bead_data[:, 2] == label)
+                ]
 
                 # Calculate x drift
 
@@ -273,20 +268,15 @@ class BeadData:
                 self.all_beads_ydrift_std.append(y_std)
 
         # Check number of std devs matches number of labels
-        
         if len(self.all_beads_ydrift_std) != bead_labels.shape[0] - 1:
-            
-            raise IndexError('Number of standard deviations should match number of labels.'
+            raise IndexError('Number of standard deviations should'
+                             'match number of labels.'
                              'Check your y-values again.')
-        
+
         if len(self.all_beads_xdrift_std) != bead_labels.shape[0] - 1:
-            
-            raise IndexError('Number of standard deviations should match number of labels.'
+            raise IndexError('Number of standard deviations should'
+                             'match number of labels.'
                              'Check your x-values again.')
-        
-        self.mean_std_xaxis = np.mean(np.vstack(self.all_beads_xdrift_std))
-        
-        self.mean_std_yaxis = np.mean(np.vstack(self.all_beads_ydrift_std))
 
     def save_data(self, outpath):
 
@@ -303,22 +293,26 @@ class BeadData:
 
             raise TypeError('Output path is not a string.')
 
-        np.savetxt(outpath + '/sorted_beads.txt', self.dbscan_data, fmt='%.5e',
+        mean_std_xaxis = np.mean(np.vstack(self.all_beads_xdrift_std))
+        mean_std_yaxis = np.mean(np.vstack(self.all_beads_ydrift_std))
+
+        np.savetxt(outpath + '/sorted_beads.txt', self.dbscan_data,
+                   fmt='%.5e',
                    header='Beads localisations sorted by label \n'
-                          'Mean drift in x = ' + str(self.mean_std_xaxis) + 'nm \n'
-                          'Mean drift in y = ' + str(self.mean_std_yaxis) + 'nm \n'
+                          'Mean xdrift = ' + str(mean_std_xaxis) + 'nm \n'
+                          'Mean ydrift = ' + str(mean_std_yaxis) + 'nm \n'
                           'x[nm] y[nm] label \n'
                    )
 
     def plot_bead_trajectory(self, outpath):
 
         """
-        This method plots a scatterplot and saves it to local storage, as specified
-        by the outpath as a .png and a .tif. The scatterplot consists of the drift
-        values along x and y for all beads, as calculated by measure_drift. The colors
-        represent the experimental timecourse, with red indicating the start and blue
-        indicating the end.
-
+        This method plots a scatterplot and saves it to local
+        storage, as specified by the outpath as a .png and a .tif.
+        The scatterplot consists of the drift values along x and y
+        for all beads, as calculated by measure_drift. The colors
+        represent the experimental timecourse, with red indicating
+        the start and blue indicating the end.
 
         :param outpath: output path where data will be saved
         :type outpath: string
@@ -330,7 +324,8 @@ class BeadData:
 
         y = self.all_beads_drift_yaxis
 
-        # Frame id is a unique value assigned to each localisation for a particular bead
+        # Frame id is a unique value assigned to each
+        # localisation for a particular bead
 
         frame_ids = []
 
@@ -344,7 +339,8 @@ class BeadData:
 
         # Compile all x, y, and frame id values
 
-        x_vals, y_vals, frames = np.vstack(x), np.vstack(y), (np.vstack(frame_ids) - 1) / 2
+        x_vals, y_vals, frames = (np.vstack(x), np.vstack(y),
+                                  (np.vstack(frame_ids) - 1) / 2)
 
         # Check all arrays are the same size
 
@@ -362,20 +358,17 @@ class BeadData:
         mpl.rcParams['font.size'] = 13
 
         plt.figure(figsize=(10, 10), dpi=500)
-        plt.scatter(x_vals, y_vals, c=frames, cmap=plt.cm.RdYlBu, marker='o',s=5, alpha=0.8)
+        plt.scatter(x_vals, y_vals, c=frames, cmap=plt.cm.RdYlBu,
+                    marker='o', s=5, alpha=0.8)
         plt.box(True)
-        
         # Add color bar
-        
         colorbar = plt.colorbar()
         colorbar.set_ticks(np.arange(np.min(frames), np.max(frames), 20))
         colorbar.update_ticks()
 
         colorbar.ax.tick_params(width=1, length=3, labelsize=14)
-        colorbar.set_label('Time (mins)', fontsize = 16)
-        
+        colorbar.set_label('Time (mins)', fontsize=16)
         # Set plot parameters
-        
         ax = plt.gca()
         ax.set_aspect('equal', adjustable='box')
         ax.tick_params(axis='y', which='major', length=6)
@@ -384,7 +377,6 @@ class BeadData:
         ax.yaxis.set_major_locator(MultipleLocator(10))
         ax.xaxis.label.set_color('black')
         ax.yaxis.label.set_color('black')
-        
         ax.spines['bottom'].set_color('black')
         ax.spines['top'].set_color('black')
         ax.spines['right'].set_color('black')
@@ -393,8 +385,7 @@ class BeadData:
         ax.spines['top'].set_linewidth(2.0)
         ax.spines['right'].set_linewidth(2.0)
         ax.spines['left'].set_linewidth(2.0)
-        
-        ax.set_xlim([np.min(x_vals) -5, np.max(x_vals) + 5])
+        ax.set_xlim([np.min(x_vals) - 5, np.max(x_vals) + 5])
         ax.set_ylim([np.min(y_vals) - 5, np.max(y_vals) + 5])
         ax.set_xlabel('x (nm)', labelpad=12, fontsize=24)
         ax.set_ylabel('y (nm)', labelpad=12, fontsize=24)
@@ -403,6 +394,40 @@ class BeadData:
         plt.savefig(outpath + '/drift_trajectory.png')
 
 class SingleMoleculeData:
+
+    """
+    Represents xy localisations of single-molecule data.
+
+    Attributes
+    ----------
+        name: str
+            Name of project
+        xydata: numpy array
+            xy localisation data
+        sm_xdrift: numpy array
+            Drift along x-axis
+        sm_ydrift: numpy array
+            Drift along y-axis
+        xdrift_std: float
+            Standard deviation of drift along x-axis
+        ydrift_std: float
+            Standard deviation of drift along y-axis
+
+    Methods
+    -------
+        load localisations(input_path):
+            Loads xy data of a single molecule
+
+        calculate_drift():
+            Calculates drift by first subtracting initial
+            x and y positions then calculating the standard
+            deviation.
+
+        plot_sm_drift(outpath):
+            Plots drift over time as a scatterplot and saves
+            to local memory.
+    """
+
 
     def __init__(self, name):
 
@@ -420,6 +445,15 @@ class SingleMoleculeData:
 
     def load_localisations(self, input_path):
 
+        """
+        This method loads the xy data of a single molecule
+        given the input file.
+
+        :param input_path: file location of .csv file containing
+            xydata.
+        :type input_path: str
+        """
+
         if isinstance(input_path, str):
 
             pass
@@ -432,10 +466,8 @@ class SingleMoleculeData:
 
             raise NameError('Input file must be a .csv file')
 
-        loc_data = np.genfromtxt(input_path,
-                                          dtype = float,
-                                          skip_header=1,
-                                          delimiter = ',')
+        loc_data = np.genfromtxt(input_path, dtype=float,
+                                 skip_header=1, delimiter=',')
 
         if loc_data.shape[1] != 2:
 
@@ -444,6 +476,12 @@ class SingleMoleculeData:
         self.xydata = loc_data
 
     def calculate_drift(self):
+
+        """
+        This method calculates the drift of a single
+        molecule by subtracting the initial position and
+        calculating the standard deviation.
+        """
 
         x_coords = self.xydata[:, 0].copy()
 
@@ -463,6 +501,15 @@ class SingleMoleculeData:
 
     def plot_sm_drift(self, outpath):
 
+        """
+        This method plots the drift along x and y
+        on a scatterplot and saves the plot to local
+        memory, as specified by the outpath.
+
+        :param outpath: directory where output should be stored.
+        :type outpath: str
+        """
+
         x = self.sm_xdrift.copy()
 
         y = self.sm_ydrift.copy()
@@ -473,7 +520,8 @@ class SingleMoleculeData:
         mpl.rcParams['font.size'] = 9
 
         plt.figure(figsize=(12, 12), dpi=500)
-        plt.scatter(x, y, c=frames, cmap=plt.cm.RdYlBu, marker='o', s=30, alpha=0.8)
+        plt.scatter(x, y, c=frames, cmap=plt.cm.RdYlBu,
+                    marker='o', s=30, alpha=0.8)
         plt.box(True)
 
         # Add color bar
