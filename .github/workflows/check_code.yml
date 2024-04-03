@@ -41,5 +41,5 @@ jobs:
       run: |
         # identify Python syntax errors or undefined names
         pylint new_scripts/drift_analysis_script.py
-        pylint new_scripts/sm_example.py
+        pylint new_scripts/sm_example_analysis.py
         pylint new_scripts/bead_example_analysis.py
