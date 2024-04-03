@@ -6,11 +6,11 @@ name: Test python versions and operating systems
 on:
   push:
     paths-ignore:
-      - 'original_scripts/'
+      - 'original_scripts/**'
     branches: [ "main" ]
   pull_request:
     paths-ignore:
-      - 'original_scripts/'
+      - 'original_scripts/**'
     branches: [ "main" ]
   workflow_dispatch:
 
