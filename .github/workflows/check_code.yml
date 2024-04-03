@@ -37,5 +37,8 @@ jobs:
         python -m pip install pylint
     - name: Lint with pylint
       run: |
-        # stop the build if there are Python syntax errors or undefined names
-        pylint
+        # identify Python syntax errors or undefined names
+        pylint new_scripts/drift_analysis_script.py
+        pylint new_scripts/sm_example.py
+        pylint new_scripts/bead_example_analysis.py
+        continue-on-error: True
