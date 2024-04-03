@@ -33,12 +33,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install pytest
+        python -m pip install numpy
+        python -m pip install matplotlib
         python -m pip install pylint
+        python -m pip install -U scikit-learn
     - name: Lint with pylint
       run: |
         # identify Python syntax errors or undefined names
         pylint new_scripts/drift_analysis_script.py
         pylint new_scripts/sm_example.py
         pylint new_scripts/bead_example_analysis.py
-        continue-on-error: True
