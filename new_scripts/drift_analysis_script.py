@@ -402,13 +402,17 @@ class BeadData:
         plt.savefig(outpath + '/drift_trajectory.tif')
         plt.savefig(outpath + '/drift_trajectory.png')
 
-class SingleMoleculeData(BeadData):
+class SingleMoleculeData:
 
     def __init__(self, name):
 
-        super().__init__(self, name)
-
         self.name = name
+
+        self.xydata = []
+
+        self.sm_xdrift = []
+
+        self.sm_ydrift = []
 
         self.xdrift_std = float()
 
@@ -416,21 +420,42 @@ class SingleMoleculeData(BeadData):
 
     def load_localisations(self, input_path):
 
-        super().load_localisations(self, input_path)
+        if isinstance(input_path, str):
+
+            pass
+
+        else:
+
+            raise TypeError('Input path must be a string')
+
+        if input_path[-4:] != '.csv':
+
+            raise NameError('Input file must be a .csv file')
+
+        loc_data = np.genfromtxt(input_path,
+                                          dtype = float,
+                                          skip_header=1,
+                                          delimiter = ',')
+
+        if loc_data.shape[1] != 2:
+
+            raise IndexError('Input file must have two columns.')
+
+        self.xydata = loc_data
 
     def calculate_drift(self):
-
-        if self.xydata.shape[1] != 2:
-
-            raise ValueError('xydata should have two columns.')
 
         x_coords = self.xydata[:, 0].copy()
 
         y_coords = self.xydata[:, 1].copy()
 
-        x_drift = x_coords - x_coords[0]
+        x_drift = (x_coords - x_coords[0]).reshape(x_coords.shape[0], 1)
 
-        y_drift = y_coords - y_coords[0]
+        self.sm_xdrift = x_drift
+
+        y_drift = (y_coords - y_coords[0]).reshape(y_coords.shape[0], 1)
+
+        self.sm_ydrift = y_drift
 
         self.xdrift_std = np.std(x_drift[1:])
 
@@ -438,19 +463,17 @@ class SingleMoleculeData(BeadData):
 
     def plot_sm_drift(self, outpath):
 
-        x = self.xydata[:, 0].copy()
+        x = self.sm_xdrift.copy()
 
-        y = self.xydata[:, 1].copy()
+        y = self.sm_ydrift.copy()
 
         frames = np.arange(1, x.shape[0] + 1).reshape(x.shape[0], 1)
 
-        frames = (frames - 1) / 2
-
         mpl.rcParams['font.family'] = 'sans-serif'
-        mpl.rcParams['font.size'] = 13
+        mpl.rcParams['font.size'] = 9
 
-        plt.figure(figsize=(10, 10), dpi=500)
-        plt.scatter(x, y, c=frames, cmap=plt.cm.RdYlBu, marker='o', s=5, alpha=0.8)
+        plt.figure(figsize=(12, 12), dpi=500)
+        plt.scatter(x, y, c=frames, cmap=plt.cm.RdYlBu, marker='o', s=30, alpha=0.8)
         plt.box(True)
 
         # Add color bar
@@ -460,7 +483,7 @@ class SingleMoleculeData(BeadData):
         colorbar.update_ticks()
 
         colorbar.ax.tick_params(width=1, length=3, labelsize=14)
-        colorbar.set_label('Time (mins)', fontsize=16)
+        colorbar.set_label('Time (frame)', fontsize=16)
 
         # Set plot parameters
 
@@ -482,8 +505,8 @@ class SingleMoleculeData(BeadData):
         ax.spines['right'].set_linewidth(2.0)
         ax.spines['left'].set_linewidth(2.0)
 
-        ax.set_xlim([np.min(x_vals) - 5, np.max(x_vals) + 5])
-        ax.set_ylim([np.min(y_vals) - 5, np.max(y_vals) + 5])
+        ax.set_xlim([np.min(x) - 10, np.max(x) + 10])
+        ax.set_ylim([np.min(y) - 10, np.max(y) + 10])
         ax.set_xlabel('x (nm)', labelpad=12, fontsize=24)
         ax.set_ylabel('y (nm)', labelpad=12, fontsize=24)
 
