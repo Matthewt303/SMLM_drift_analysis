@@ -2,7 +2,7 @@
 A series of python scripts used to analyse the sample drift of fluorescent beads and single molecules. These scripts were used in a project aiming to quantify and characterise sample drift from a novel reinforced optical cage system microscope. 
 
 # About 
-Drift can be a major hinderance in image acquisition during single-molecule localization molecule experiments. To this end, this project aimed to develop a novel optical setup to reduce sample drift, thereby improving the fidelity and reliability of super-resolution images from single-molecule localisation microscopy. In order to quantify drift, we collected widefield image time series' of fluorescent beads, determined the beads' sub-pixel localisations using ThunderSTORM, before applying these scripts to the localisation tables obtained from ThunderSTORM. We also quantified drift from stochastic optical reconstruction microscopy (STORM) by using the localisations of ten separate single-molecules.
+This project aimed to develop a novel optical setup to reduce sample drift, thereby improving the fidelity and reliability of super-resolution images from single-molecule localisation microscopy. We quantified drift by collecting widefield image time series' of fluorescent beads, determining the beads' sub-pixel localisations using ThunderSTORM, and applying these scripts to the localisation tables obtained from ThunderSTORM. We also quantified drift from stochastic optical reconstruction microscopy (STORM) by using the localisations of ten separate single-molecules.
 
 While these scripts were used specifically for quantifying stability in the reinforced optical cage system, we anticipate that they can be broadly used to quantify lateral drift in any microscope. However, this project does not contain any methods to analyse axial drift but may be updated in the future to include such features.
 
@@ -17,7 +17,8 @@ This repository contains several folders:
 - 'original_scripts' contains three python scripts. These were used during the project to quickly assess the results from experiments. Their use is currently deprecated and is not recommended to use them.
 - 'new_scripts' contains updated python scripts that carry out the same functions as those in original_scripts. However, the updated scipts are more organised, and so it is strongly recommended to use them.
   - 'drift_analysis_script.py' contains the classes and methods for analysis, with one class for bead localisation data and another for single-molecule localisation data.
-  - 'example_analysis.py' contains an example of how to use drift_analysis_script.py for drift quantification.
+  - 'example_analysis.py' contains an example of how to use drift_analysis_script.py for drift quantification of fluorescent beads across a time series.
+  - 'sm_example_analysis.py' contains an example of how to use drift_analysis_script.py for quantifying single molecule drift.
 
 # Installation
 Note: work in progress, please check the development branch for an updated version of the code.
