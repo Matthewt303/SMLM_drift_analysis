@@ -26,9 +26,11 @@ Please feel free to download the repository as a .zip file to use the code.
 # Usage
 It is highly recommended to use a [python virtual environment](https://www.freecodecamp.org/news/how-to-setup-virtual-environments-in-python/). Once this has been set up, install [numpy](https://numpy.org/install/), [matplotlib](https://matplotlib.org/stable/users/installing/index.html), and [scikit learn](https://scikit-learn.org/stable/install.html). You can use pip or conda to install, depending on your virtual environment. Once modules have been installed, the scripts can be run by typing in the terminal:
 
-'''
+```
+
 python \path_to_script\script.py
-'''
+
+```
 
 # Contact
 Please contact matthew.tang@stfc.ac.uk for any questions.
